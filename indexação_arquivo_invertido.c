@@ -111,9 +111,9 @@ Lista* indexar(FILE *arq, char *nome, Lista *l, Lista_docs* b, char vet[127][20]
                     l = insere(l,b,str,1, nome, 1);
                 }else if(Existe(l,str) != NULL && strcmp(str,"")!= 0){
                     Lista *aux = Existe(l,str);
-                    if(strcmp(aux->l->nome,nome)==0){
+                    if(strcmp(aux->l->nome,nome)==0)
                         aux->l->quant+=1;
-                    }else{
+                    else{
                         aux->l = insere_doc(aux->l, nome, 1);
                         aux->n_docs++;
                     }
@@ -126,6 +126,7 @@ Lista* indexar(FILE *arq, char *nome, Lista *l, Lista_docs* b, char vet[127][20]
             str[i+1] = '\0';
             i++;
         }
+
     }
     return l;
 }
@@ -147,13 +148,12 @@ void busca(char *palavra, Lista *l){
 
 void main(){
     FILE *arq1, *arq2;
-    char nome_arq[20], str[TAM], vet[127][20];
+    char nome_arq[15], str[TAM], vet[127][20];
     int op, i;
     Lista *l;
     Lista_docs *b;
     l = inicia();
     b = inicia_docs();
-
 
     arq2 = fopen("stopwords.txt","rt");
     for(i = 0; i < 127; i++){
@@ -164,17 +164,40 @@ void main(){
         sprintf(nome_arq, "doc%d.txt",i);
         arq1 = fopen(nome_arq, "rt");
         if(!arq1)
-            printf("Erro ao abrir arquivo %d.", i);
+            printf("Erro ao abrir arquivo %d .\n", i);
         else{
-            l = indexar(arq1, nome_arq, l, b, vet);
-            fclose(arq1);
+        l = indexar(arq1, nome_arq, l, b, vet);
+        fclose(arq1);
         }
     }
 
-    printf("Digite a palavra que deseja buscar: ");
-    scanf("%s", str);
-    busca(strlwr(str),l);
+    while(op!=3){
+        printf("O que deseja fazer?\n1-Indexar arquivo.\n2-Procurar Palavra\n3-Sair\n");
+        scanf("%d", &op);
 
+        switch(op){
+            case 1:
+                printf("Digite o nome do arquivo com a extensao: ");
+                scanf("%s", nome_arq);
+                arq1 = fopen(nome_arq, "rt");
+                if(!arq1)
+                    printf("Erro ao abrir arquivo.\n");
+                else{
+                    l = indexar(arq1, nome_arq, l, b, vet);
+                    fclose(arq1);
+                }
+                break;
+            case 2:
+                printf("Digite a palavra que deseja buscar: ");
+                scanf("%s", str);
+                busca(strlwr(str),l);
+                break;
+            default:
+                if(op!=3)
+                    printf("Digite uma opccao valida");
+        }
+    }
     free(l);
     free(b);
 }
+
