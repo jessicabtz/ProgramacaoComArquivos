@@ -13,6 +13,13 @@ typedef struct lista_docs{
 
 }Lista_docs;
 
+typedef struct docs{
+
+    char nome[TAM];
+    int  quant;
+
+}Docs;
+
 typedef struct lista{
 
     char         info[TAM];
@@ -131,25 +138,65 @@ Lista* indexar(FILE *arq, char *nome, Lista *l, Lista_docs* b, char vet[127][20]
     return l;
 }
 
-void busca(char *palavra, Lista *l){
-    Lista *aux;
-    aux = Existe(l, palavra);
-    if(aux == NULL)
-        printf("Palavra nao existe nos arquivos.\n");
+void buscaE_OU(char *palavra1,char *palavra2, Lista *l, int num){
+    Lista *a, *b;
+    Docs *vet1, *vet2;
+    int i = 0, j = 0, cont = 0, cont1= 0, aux = 0;
+
+    vet1 = (Docs*)malloc(num * sizeof(Docs));
+    vet2 = (Docs*)malloc(num * sizeof(Docs));
+
+    a = Existe(l, palavra1);
+    b = Existe(l, palavra2);
+
+    if(a == NULL || b == NULL)
+        printf("Palavra(s) nao encontrada(s).\n");
     else{
-        ordena(&aux->l);
-        Lista_docs *d;
-        for(d = aux->l; d!= NULL; d = d->prox){
-            printf("%s\t", d->nome);
-            printf("%d\n", d->quant);
+        ordena(&a->l);//palavra1
+        ordena(&b->l);//palavra2
+        Lista_docs *c, *d;
+        for(c = a->l; c!= NULL; c = c->prox){//palavra1
+            strcpy(vet1[cont].nome,c->nome);
+            vet1[cont].quant = c->quant;
+            cont++;
+        }
+
+        for(d = b->l; d!= NULL; d = d->prox){//palavra2
+            strcpy(vet2[cont1].nome,d->nome);
+            vet2[cont1].quant = d->quant;
+            cont1++;
+        }
+
+        printf("\nAs duas palavras aparecem juntas nos seguintes arquivos:\n\n");
+        for(i = 0; i<cont; i++){//palavra1
+            for(j = 0; j<cont1; j++){//palavra2
+                if(strcmp(vet1[i].nome,vet2[j].nome)==0){
+                    printf("%s\t",vet2[j].nome);
+                    printf("%s: %d repeticoes, %s: %d repeticoes \n\n",  a->info, vet1[i].quant, b->info, vet2[j].quant);
+                }
+            }
+        }
+
+        printf("\nAs palavras aparecem juntas OU separadas nos seguintes arquivos:\n\n");
+        for(i = 0; i < cont ;i++){
+            printf("%s\n",vet1[i].nome);
+        }
+        for(i = 0; i < cont1; i++){
+            aux = 0;
+            for(j = 0; j < cont; j++){
+                if(strcmp(vet1[j].nome,vet2[i].nome) == 0)
+                    aux++;
+            }
+            if(aux == 0)
+                printf("%s\n", vet2[i].nome);
         }
     }
 }
 
 void main(){
     FILE *arq1, *arq2;
-    char nome_arq[15], str[TAM], vet[127][20];
-    int op, i;
+    char nome_arq[15], str1[TAM], str2[TAM], vet[127][20];
+    int op, i, n = 20;
     Lista *l;
     Lista_docs *b;
     l = inicia();
@@ -160,19 +207,19 @@ void main(){
         fscanf(arq2,"%s", vet[i]);
     }
 
-    for(i = 1; i<=20;i++){
+    for(i = 1; i<=n;i++){
         sprintf(nome_arq, "doc%d.txt",i);
         arq1 = fopen(nome_arq, "rt");
         if(!arq1)
-            printf("Erro ao abrir arquivo %d .\n", i);
+            printf("Erro ao abrir arquivo %d.\n", i);
         else{
-        l = indexar(arq1, nome_arq, l, b, vet);
-        fclose(arq1);
+            l = indexar(arq1, nome_arq, l, b, vet);
+            fclose(arq1);
         }
     }
 
     while(op!=3){
-        printf("O que deseja fazer?\n1-Indexar arquivo.\n2-Procurar Palavra\n3-Sair\n");
+        printf("\nO que deseja fazer?\n1-Indexar arquivo.\n2-Procurar Palavra\n3-Sair\n");
         scanf("%d", &op);
 
         switch(op){
@@ -184,20 +231,24 @@ void main(){
                     printf("Erro ao abrir arquivo.\n");
                 else{
                     l = indexar(arq1, nome_arq, l, b, vet);
+                    n++;
                     fclose(arq1);
                 }
                 break;
             case 2:
-                printf("Digite a palavra que deseja buscar: ");
-                scanf("%s", str);
-                busca(strlwr(str),l);
+                printf("Digite a primeira palavra que deseja buscar: ");
+                scanf("%s", str1);
+                printf("Digite a segunda palavra que deseja buscar: ");
+                scanf("%s", str2);
+                buscaE_OU(strlwr(str1), strlwr(str2), l, n);
                 break;
             default:
                 if(op!=3)
-                    printf("Digite uma opccao valida");
+                    printf("Digite uma opcao valida.\n");
         }
     }
     free(l);
     free(b);
 }
+
 
